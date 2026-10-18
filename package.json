@@ -1,8 +1,8 @@
 {
   "name": "rapido-readiness",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
   "scripts": {
     "import": "node scripts/import-matrix.mjs",
     "server": "node --no-warnings server/index.js",
@@ -14,9 +14,6 @@
     "import:employees": "node --no-warnings scripts/import-employees.mjs",
     "build:demo": "node scripts/build-demo.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",
     "exceljs": "^4.4.0",
@@ -30,7 +27,6 @@
     "@vitejs/plugin-react": "^6.1.2",
     "vite": "^8.3.4"
   },
-  "private": true,
   "engines": {
     "node": ">=20"
   }
