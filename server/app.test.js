@@ -259,3 +259,46 @@ test('dev login is off when disabled, and sessions cannot be forged', async () =
     assert.equal(cross.status, 403);
   } finally { server.closeAllConnections(); server.close(); }
 });
+
+// ---------- email + OTP (mock) ----------
+test('OTP login: only Roshni can sign in, with 999999 by default; others are told it is not live yet', async () => {
+  const h = await harness();
+  try {
+    const c = h.client();
+    const post = (path, body) => c.call('POST', path, body);
+    assert.equal((await post('/api/auth/otp/request', { email: 'roshni.parti@rapido.bike' })).status, 200);
+    assert.equal((await post('/api/auth/otp/request', { email: 'asha@rapido.bike' })).status, 503); // real employee, no email delivery yet
+    assert.equal((await post('/api/auth/otp/request', { email: 'nobody@rapido.bike' })).status, 503); // same answer: doesn't reveal who is in the directory
+    assert.equal((await post('/api/auth/otp/request', { email: 'x@gmail.com' })).status, 403);
+    assert.equal((await post('/api/auth/otp/verify', { email: 'asha@rapido.bike', code: '999999' })).status, 401); // the demo code works for nobody else
+    assert.equal((await post('/api/auth/otp/verify', { email: 'roshni.parti@rapido.bike', code: '123456' })).status, 401);
+    assert.equal((await c.call('GET', '/api/me')).status, 401);
+    assert.equal((await post('/api/auth/otp/verify', { email: 'Roshni.Parti@Rapido.bike ', code: '999999' })).status, 200);
+    const me = (await c.call('GET', '/api/me')).body;
+    assert.deepEqual([me.user.email, me.isAdmin], ['roshni.parti@rapido.bike', true]);
+  } finally { h.close(); }
+});
+
+test('OTP login: too many wrong codes locks the account, and an admin can sign in before the directory is loaded', async () => {
+  const h = await harness();
+  try {
+    const c = h.client();
+    for (let i = 0; i < 5; i++) assert.equal((await c.call('POST', '/api/auth/otp/verify', { email: 'roshni.parti@rapido.bike', code: '000000' })).status, 401);
+    assert.equal((await c.call('POST', '/api/auth/otp/verify', { email: 'roshni.parti@rapido.bike', code: '999999' })).status, 429); // even the right code
+    assert.equal((await c.call('POST', '/api/auth/otp/request', { email: 'roshni.parti@rapido.bike' })).status, 429);
+  } finally { h.close(); }
+
+  const db = await openDb({ memory: true }); // empty employee table
+  const app = createApp(db, { fixedOtps: { 'roshni.parti@rapido.bike': '424242' } });
+  const server = app.listen(0);
+  const base = `http://localhost:${server.address().port}`;
+  try {
+    const post = (path, body, cookie) => fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }, body: JSON.stringify(body) });
+    assert.equal((await post('/api/auth/otp/verify', { email: 'roshni.parti@rapido.bike', code: '999999' })).status, 401); // the configured code replaces the default
+    const ok = await post('/api/auth/otp/verify', { email: 'roshni.parti@rapido.bike', code: '424242' });
+    assert.equal(ok.status, 200);
+    const me = await (await fetch(base + '/api/me', { headers: { cookie: ok.headers.getSetCookie()[0].split(';')[0] } })).json();
+    assert.deepEqual([me.user.name, me.isAdmin, me.employee], ['Roshni Parti', true, null]);
+  } finally { server.closeAllConnections(); server.close(); }
+  assert.throws(() => createApp(db, { fixedOtps: { 'roshni.parti@rapido.bike': 'abc' } }), /6 digits/);
+});

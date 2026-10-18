@@ -12,6 +12,8 @@ async function call(method, path, body) {
 
 export const api = {
   config: () => call('GET', '/config'),
+  otpRequest: (email) => call('POST', '/auth/otp/request', { email }),
+  otpVerify: (email, code) => call('POST', '/auth/otp/verify', { email, code }),
   googleLogin: (credential) => call('POST', '/auth/google', { credential }),
   devLogin: (b) => call('POST', '/auth/dev', b),
   logout: () => call('POST', '/auth/logout', {}),

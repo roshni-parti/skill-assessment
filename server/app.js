@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import express from 'express';
 import { getRole, listRoles } from './matrix.js';
 import { buildQuestions, computeResult, publicQuestion } from './scoring.js';
@@ -22,7 +23,10 @@ export function createApp(db, opts = {}) {
     devLogin: !production && (opts.devLogin ?? !googleClientId),
     secret: opts.sessionSecret ?? process.env.SESSION_SECRET ?? (production ? '' : 'dev-only-secret'),
     secure: production,
+    // Email + OTP sign-in. Real email delivery isn't built yet, so only these accounts can sign in, each with a fixed code.
+    fixedOtps: new Map(Object.entries(opts.fixedOtps ?? { 'roshni.parti@rapido.bike': process.env.DEMO_OTP || '999999' }).map(([e, c]) => [normEmail(e), String(c)])),
   };
+  for (const c of cfg.fixedOtps.values()) if (!/^\d{6}$/.test(c)) throw new Error('DEMO_OTP must be exactly 6 digits');
   if (!cfg.secret) throw new Error('SESSION_SECRET must be set in production');
   const verifyGoogle = opts.verifyGoogle ?? (googleClientId ? googleVerifier(googleClientId) : null);
 
@@ -122,7 +126,41 @@ export function createApp(db, opts = {}) {
   }
 
   // ---------- auth ----------
-  app.get('/api/config', (_req, res) => res.json({ googleClientId: cfg.googleClientId, devLogin: cfg.devLogin, allowedDomain: cfg.allowedDomain }));
+  app.get('/api/config', (_req, res) => res.json({ googleClientId: cfg.googleClientId, devLogin: cfg.devLogin, otpLogin: true, allowedDomain: cfg.allowedDomain }));
+
+  // ---- email + OTP (mock): step 1 asks for a code, step 2 checks it ----
+  const failures = new Map(); // email -> { n, until }   (per server instance; a light brake, not a full rate limiter)
+  const MAX_TRIES = 5, LOCK_MS = 15 * 60_000;
+  const isLocked = (email) => { const f = failures.get(email); return !!f && f.n >= MAX_TRIES && f.until > Date.now(); };
+  const recordFailure = (email) => {
+    if (failures.size > 5000) failures.clear();
+    const f = failures.get(email);
+    failures.set(email, { n: (f && f.until > Date.now() ? f.n : 0) + 1, until: Date.now() + LOCK_MS });
+  };
+
+  app.post('/api/auth/otp/request', async (req, res) => {
+    const email = normEmail(req.body?.email);
+    if (!email.endsWith(`@${cfg.allowedDomain}`)) throw httpError(403, `Please use your @${cfg.allowedDomain} work email`);
+    if (isLocked(email)) throw httpError(429, 'Too many attempts. Please try again in 15 minutes.');
+    // Same answer for everyone else, whether or not they are in the directory, so it doesn't reveal who is.
+    if (!cfg.fixedOtps.has(email)) throw httpError(503, 'Email codes are not switched on yet. Only demo access is enabled for now.');
+    res.json({ ok: true });
+  });
+
+  app.post('/api/auth/otp/verify', async (req, res) => {
+    const email = normEmail(req.body?.email);
+    const code = String(req.body?.code ?? '').trim();
+    if (isLocked(email)) throw httpError(429, 'Too many attempts. Please try again in 15 minutes.');
+    const want = cfg.fixedOtps.get(email);
+    const ok = !!want && code.length === want.length && timingSafeEqual(Buffer.from(code), Buffer.from(want));
+    if (!ok) { recordFailure(email); throw httpError(401, 'That code is not correct.'); }
+    failures.delete(email);
+    // Admins can sign in even before the employee master is loaded; everyone else must be in it.
+    const emp = (await getEmployeeByEmail(db, email)) ?? (cfg.adminEmails.has(email) ? { id: null, email, name: email.split('@')[0].split(/[._-]/).map((w) => w[0].toUpperCase() + w.slice(1)).join(' ') } : null);
+    if (!emp) throw httpError(403, "Your email isn't in the active employee list. Please contact People & Culture.");
+    await startSession(res, emp);
+    res.json({ ok: true });
+  });
 
   app.post('/api/auth/google', async (req, res) => {
     if (!verifyGoogle) throw httpError(503, 'Google sign-in is not configured');

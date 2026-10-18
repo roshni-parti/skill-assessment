@@ -60,7 +60,9 @@ export async function openDb({ url = process.env.DATABASE_URL, memory = false, f
     run = (sql, params) => pool.query(sql, params);
     exec = (sql) => pool.query(sql);
   } else {
-    const { PGlite } = await import('@electric-sql/pglite');
+    // Local/test only. Imported by variable name so the Vercel bundler doesn't ship this large WASM package.
+    const pkg = '@electric-sql/pglite';
+    const { PGlite } = await import(pkg);
     const lite = new PGlite(memory ? undefined : path.resolve(file));
     run = (sql, params) => lite.query(sql, params);
     exec = (sql) => lite.exec(sql);

@@ -38,7 +38,7 @@ function save(a, who, questions, incoming = {}) {
 }
 
 export const api = {
-  config: async () => ({ googleClientId: '', devLogin: true, allowedDomain: 'rapido.bike' }),
+  config: async () => ({ googleClientId: '', devLogin: true, otpLogin: false, allowedDomain: 'rapido.bike' }),
   devLogin: async ({ name, email }) => { if (!String(name ?? '').trim() || !String(email ?? '').includes('@')) throw new Error('Name and a valid email are required'); mem.user = { id: 1, name: name.trim(), email }; persist(); return { ok: true }; },
   googleLogin: async () => ({ ok: true }),
   logout: async () => { mem.user = null; persist(); return { ok: true }; },

@@ -51,12 +51,12 @@ export default function Questionnaire({ questions, initial, onSave, mode, quick 
         const a = answers[q.id] ?? {};
         return (
           <fieldset key={q.id} className={`skill ${a.skipped ? 'skipped' : ''}`}>
-            <legend>
-              <span className="skill-title">{q.title}</span>
+            <legend className="skill-title">{q.title}</legend>
+            <div className="chips">
               <span className={`chip gate ${q.gate?.replace(/\s/g, '').toLowerCase() ?? 'none'}`}>{q.gate ?? 'Expected'}</span>
               <span className="chip">Target: {q.targetProficiency}</span>
               {q.stretch && <span className="chip stretch">Step up from current level</span>}
-            </legend>
+            </div>
             {q.details.length > 0 && <p className="muted small details">{q.details.join(' · ')}</p>}
 
             {isManager && evidenceFromEmployee[q.id] && (

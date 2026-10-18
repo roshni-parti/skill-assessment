@@ -18,6 +18,36 @@ function useLoad(fn, deps) {
 const Status = ({ s }) => (s.loading ? <p className="muted">Loading…</p> : s.error ? <p className="error" role="alert">{s.error.message}</p> : null);
 
 // ---------- sign in ----------
+function OtpLogin({ config, onDone }) {
+  const [step, setStep] = useState('email');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const run = async (fn) => { setBusy(true); setErr(''); try { await fn(); } catch (e) { setErr(e.message); } finally { setBusy(false); } };
+
+  if (step === 'email') {
+    return (
+      <form onSubmit={(e) => { e.preventDefault(); run(async () => { await api.otpRequest(email); setStep('code'); }); }} className="loginform">
+        <label htmlFor="login-email">Work email</label>
+        <input id="login-email" required type="email" inputMode="email" autoComplete="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder={`you@${config.allowedDomain || 'rapido.bike'}`} />
+        <button className="btn primary" disabled={busy}>{busy ? 'Please wait…' : 'Send code'}</button>
+        {err && <p className="error" role="alert">{err}</p>}
+      </form>
+    );
+  }
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); run(async () => { await api.otpVerify(email, code); onDone(); }); }} className="loginform">
+      <p className="muted small">Enter the 6-digit code for <strong>{email}</strong>.</p>
+      <label htmlFor="login-code">Code</label>
+      <input id="login-code" required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" autoFocus value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} placeholder="123456" className="codeinput" />
+      <button className="btn primary" disabled={busy || code.length !== 6}>{busy ? 'Checking…' : 'Sign in'}</button>
+      <button type="button" className="link" onClick={() => { setStep('email'); setCode(''); setErr(''); }}>Use a different email</button>
+      {err && <p className="error" role="alert">{err}</p>}
+    </form>
+  );
+}
+
 function Login({ config, onDone }) {
   const [err, setErr] = useState('');
   const [f, setF] = useState({ name: '', email: '' });
@@ -43,8 +73,9 @@ function Login({ config, onDone }) {
   return (
     <div className="card narrow">
       <h1>Level readiness</h1>
-      <p className="muted">See how ready you are for your next level and what to work on. Sign in with your Rapido work account; your function, level and manager come from the employee master.</p>
+      <p className="muted">See how ready you are for your next level and what to work on. Sign in with your Rapido work email.</p>
       {config.googleClientId && <div ref={btn} className="gbtn" />}
+      {config.otpLogin && <OtpLogin config={config} onDone={onDone} />}
       {config.devLogin && (
         <form onSubmit={async (e) => { e.preventDefault(); try { await api.devLogin(f); onDone(); } catch (x) { setErr(x.message); } }} className="devlogin">
           <p className="muted small">{__DEMO__ ? 'Demo sign-in (nothing leaves your browser).' : 'Local development sign-in.'}</p>
@@ -53,7 +84,7 @@ function Login({ config, onDone }) {
           <button className="btn primary">Continue</button>
         </form>
       )}
-      {!config.googleClientId && !config.devLogin && <p className="error">Sign-in isn't configured yet. Please contact the tool owner.</p>}
+      {!config.googleClientId && !config.otpLogin && !config.devLogin && <p className="error">Sign-in isn't configured yet. Please contact the tool owner.</p>}
       {err && <p className="error" role="alert">{err}</p>}
     </div>
   );
@@ -122,7 +153,8 @@ function AdminDemo({ onError }) {
           <h2>Take the test as another employee <span className="chip admin-chip">Admin</span></h2>
           <p className="muted small">Runs the real assessment for their role and level, with their manager. It is saved as a test under your account, so it never shows up in their history or their manager's queue.</p>
           <Status s={people} />
-          {people.data && (
+          {people.data?.length === 0 && <p className="notice small">No employees are loaded yet. Run <code>npm run import:employees</code> against the database (see DEPLOY.md, step 6) to enable this.</p>}
+          {people.data?.length > 0 && (
             <div className="form-row asrow">
               <label>Find an employee<input value={q} onChange={(e) => { setQ(e.target.value); setPick(''); }} placeholder="Search by name, email or role" /></label>
               <label>Employee ({matches.length})
@@ -295,7 +327,7 @@ export default function App() {
         {state.me && (
           <span className="topnav">
             <a href="#/reviews">Team reviews{state.me.reviewsWaiting > 0 ? ` (${state.me.reviewsWaiting})` : ''}</a>
-            {state.me.user.name} · <button className="link" onClick={async () => { await api.logout(); nav('/'); setState({ loading: true }); load(); }}>Sign out</button>
+            <span className="uname">{state.me.user.name}</span><button className="link" onClick={async () => { await api.logout(); nav('/'); setState({ loading: true }); load(); }}>Sign out</button>
           </span>
         )}
       </header>
