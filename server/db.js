@@ -52,6 +52,7 @@ const SCHEMA = `
 `;
 
 export async function openDb({ url = process.env.DATABASE_URL, memory = false, file = 'data/dev-db' } = {}) {
+  if (!url && !memory && process.env.NODE_ENV === 'production') throw new Error('DATABASE_URL is not set. In Vercel: Storage -> create a Neon database and connect it to this project.');
   let run, exec;
   if (url) {
     const { default: pg } = await import('pg');
