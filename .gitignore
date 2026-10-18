@@ -1,0 +1,12 @@
+node_modules
+client/dist
+dist-demo
+data/dev-db
+data/app.db*
+data/*.xlsx
+*.xlsx
+*.zip
+.env
+.env.*
+!.env.example
+.vercel

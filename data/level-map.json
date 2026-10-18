@@ -1,0 +1,59 @@
+{
+  "_note": "How the employee master data maps to skill-matrix roles and levels. Edit here when HR titles/bands change.",
+  "roleByDepartment": {
+    "Fullstack": "developer",
+    "Mobile - Android": "mobile-android",
+    "Mobile - IOS": "mobile-ios",
+    "QA": "qa",
+    "Data Engineering": "data-engineer",
+    "Technical Support": "tech-support"
+  },
+  "unsupportedDepartments": {
+    "Devops": "There is no DevOps skill matrix yet, so your readiness can't be assessed."
+  },
+  "supportedParentDepartments": ["Engineering"],
+  "bandByDesignation": {
+    "Associate Professional": "L-11",
+    "Professional 1": "L-10",
+    "Professional 2": "L-9",
+    "Senior Professional 1": "L-8",
+    "Senior Professional 2": "L-7",
+    "Lead Professional 1": "L-6",
+    "Lead Professional 2": "L-5",
+    "Principal Professional 1": "L-4"
+  },
+  "levelByBand": {
+    "developer": {
+      "L-11": "Associate Product Engineer", "L-10": "Product Engineer", "L-9": "Product Engineer",
+      "L-8": "Senior Product Engineer 1", "L-7": "Senior Product Engineer 2",
+      "L-6": "Lead Product Engineer 1", "L-5": "Lead Product Engineer 2",
+      "L-4": "Principal Product Engineer 1", "L-3B": "Director"
+    },
+    "mobile-android": {
+      "L-11": "Associate Product Engineer", "L-10": "Product Engineer", "L-9": "Product Engineer",
+      "L-8": "Senior Product Engineer 1", "L-7": "Senior Product Engineer 2",
+      "L-6": "Lead Product Engineer 1", "L-5": "Lead Product Engineer 2",
+      "L-4": "Principal Product Engineer 1", "L-3B": "Director"
+    },
+    "mobile-ios": {
+      "L-11": "Associate Product Engineer", "L-10": "Product Engineer", "L-9": "Product Engineer",
+      "L-8": "Senior Product Engineer 1", "L-7": "Senior Product Engineer 2",
+      "L-6": "Lead Product Engineer 1", "L-5": "Lead Product Engineer 2",
+      "L-4": "Principal Product Engineer 1"
+    },
+    "qa": {
+      "L-11": "Associate Product Test Engineer", "L-10": "Product Test Engineer 1", "L-9": "Product Test Engineer 2",
+      "L-8": "Senior Product Test Engineer1", "L-7": "Senior Product Test Engineer 2",
+      "L-6": "Lead Product Test Engineer 1", "L-5": "Lead Product Test Engineer 2",
+      "L-4": "Principal Product Test Engineer 1"
+    },
+    "tech-support": {
+      "L-11": "Technical Support Engineer", "L-10": "Technical Support Engineer", "L-9": "Technical Support Engineer",
+      "L-8": "Senior Technical Support Engineer 1", "L-7": "Senior Technical Support Engineer 2"
+    },
+    "data-engineer": {
+      "L-11": "ADE", "L-10": "DE", "L-9": "DE", "L-8": "SDE1", "L-7": "SDE2",
+      "L-6": "LDE1", "L-5": "LDE2", "L-4": "PDE", "L-3B": "Director"
+    }
+  }
+}

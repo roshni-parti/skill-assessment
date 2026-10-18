@@ -1,0 +1,37 @@
+{
+  "name": "rapido-readiness",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "import": "node scripts/import-matrix.mjs",
+    "server": "node --no-warnings server/index.js",
+    "client": "vite",
+    "dev": "node --no-warnings server/index.js & vite & wait",
+    "build": "vite build",
+    "start": "npm run build && node --no-warnings server/index.js",
+    "test": "node --no-warnings --test server/app.test.js",
+    "import:employees": "node --no-warnings scripts/import-employees.mjs",
+    "build:demo": "node scripts/build-demo.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.10",
+    "exceljs": "^4.4.0",
+    "express": "^5.3.0",
+    "google-auth-library": "^11.3.1",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "vite": "^8.3.4"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}

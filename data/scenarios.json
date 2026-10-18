@@ -1,0 +1,347 @@
+[
+  {
+    "roles": ["developer"], "skill": "Clean Code",
+    "situation": "A teammate's 400-line service method handles validation, pricing and notifications, and you have to add a new discount rule to it before Friday.",
+    "options": [
+      { "tier": 0, "text": "Add the rule with a few more if-statements inside the method. The deadline matters most." },
+      { "tier": 1, "text": "Add the rule as is, and leave a TODO to clean the method up another day." },
+      { "tier": 2, "text": "Pull the pricing logic into its own well-named unit with tests, then add the rule there." },
+      { "tier": 3, "text": "Introduce a small pricing-rule abstraction so new discounts plug in, migrate the existing rules behind tests, and agree the direction with the team in the PR." }
+    ]
+  },
+  {
+    "roles": ["developer"], "skill": "Unit Testing",
+    "situation": "You change a payment-retry function that calls a third-party gateway. The existing tests are slow and sometimes fail because they hit the real sandbox.",
+    "options": [
+      { "tier": 0, "text": "Skip automated tests for this change and verify it manually in staging." },
+      { "tier": 1, "text": "Re-run the flaky tests until they pass, then merge." },
+      { "tier": 2, "text": "Stub the gateway client in unit tests covering success, timeout and duplicate responses, and keep the sandbox for a few integration tests." },
+      { "tier": 3, "text": "Do that, then add contract tests against the gateway's schema and share the stub so other services stop hitting the sandbox." }
+    ]
+  },
+  {
+    "roles": ["developer"], "skill": "Database Fundamentals",
+    "situation": "An orders list screen got slow after the table grew to 50 million rows. The query filters by user_id and status and sorts by created_at.",
+    "options": [
+      { "tier": 0, "text": "Ask for a bigger database instance." },
+      { "tier": 1, "text": "Add a separate index on each filtered column." },
+      { "tier": 2, "text": "Check the query plan, add a composite index that matches the filter and sort order, and confirm the plan changes." },
+      { "tier": 3, "text": "Do that, then weigh keyset pagination or archiving old rows, and measure the write cost of the new index before rollout." }
+    ]
+  },
+  {
+    "roles": ["developer"], "skill": "Systems Resiliency",
+    "situation": "Your service calls a partner API that has started timing out under load, and your threads are piling up.",
+    "options": [
+      { "tier": 0, "text": "Increase the timeout and the thread pool size." },
+      { "tier": 1, "text": "Add a retry on every failure." },
+      { "tier": 2, "text": "Set tight timeouts, retry idempotent calls with backoff and jitter, and add a circuit breaker with a fallback." },
+      { "tier": 3, "text": "Do that, isolate this dependency with bulkheads so it can't starve other traffic, alert on breaker state, and agree degraded behaviour with product and the partner." }
+    ]
+  },
+  {
+    "roles": ["developer"], "skill": "Production Monitoring Fundamentals",
+    "situation": "At 2 a.m. you are paged: the error rate on checkout jumped from 0.2% to 6%. A deploy went out 20 minutes ago.",
+    "options": [
+      { "tier": 0, "text": "Wait and see if it settles, and look again in the morning." },
+      { "tier": 1, "text": "Restart the service and see whether the errors go away." },
+      { "tier": 2, "text": "Check the dashboard and logs for the failing endpoint, correlate with the deploy, and roll back if the deploy is the likely cause." },
+      { "tier": 3, "text": "Roll back first to stop the impact, then isolate the cause with traces and logs, write a timeline, and file follow-ups for the detection gap." }
+    ]
+  },
+  {
+    "roles": ["developer"], "skill": "Security Fundamentals",
+    "situation": "You find a payment provider API key hardcoded in a repository that several teams can read.",
+    "options": [
+      { "tier": 0, "text": "Leave it. The repository is internal." },
+      { "tier": 1, "text": "Move it to an environment variable in a new commit." },
+      { "tier": 2, "text": "Rotate the key straight away, move it to the secrets manager, and remove it from the code." },
+      { "tier": 3, "text": "Rotate it, move it to the secrets manager, scrub it from history, add secret scanning to CI, and check access logs for misuse." }
+    ]
+  },
+  {
+    "roles": ["developer"], "skill": "AI-Assisted Development",
+    "situation": "You use an AI coding assistant to generate a data-migration script for customer records.",
+    "options": [
+      { "tier": 0, "text": "Run it on production because the output looks right." },
+      { "tier": 1, "text": "Skim it and run it on staging." },
+      { "tier": 2, "text": "Review it line by line, test it on a copy of the data with edge cases, and keep real customer data out of the prompts." },
+      { "tier": 3, "text": "Do that, write the constraints into the prompt, add tests the AI didn't write, and document the prompt so teammates can reuse it safely." }
+    ]
+  },
+  {
+    "roles": ["developer"], "skill": "Design and Arcitecture of Features",
+    "situation": "Product asks for in-app notifications for 6 different events, with more expected next quarter.",
+    "options": [
+      { "tier": 0, "text": "Write six separate code paths, one per event." },
+      { "tier": 1, "text": "Build the first one, then copy it and tweak it for each event." },
+      { "tier": 2, "text": "Define a common event and handler interface, implement the six handlers behind it, and keep delivery decoupled." },
+      { "tier": 3, "text": "Do that, write a short design doc covering failure modes and scale, and review it with peers before building." }
+    ]
+  },
+
+  {
+    "roles": ["mobile-android", "mobile-ios"], "skill": "Clean Code",
+    "situation": "A screen's controller has grown to 1,500 lines mixing networking, formatting and UI logic, and you need to add a new card type to it.",
+    "options": [
+      { "tier": 0, "text": "Add the card type in the same file." },
+      { "tier": 1, "text": "Add it and move a couple of helper functions out." },
+      { "tier": 2, "text": "Move the logic behind a presenter or view-model with tests, then add the card type through it." },
+      { "tier": 3, "text": "Propose a screen architecture pattern, migrate this screen as the template, and document it for the team." }
+    ]
+  },
+  {
+    "roles": ["mobile-android", "mobile-ios"], "skill": "Optimise app performance",
+    "situation": "Users report the app drains battery and that a long feed stutters on mid-range phones.",
+    "options": [
+      { "tier": 0, "text": "Tell users to close background apps." },
+      { "tier": 1, "text": "Shrink the images wherever you happen to notice jank." },
+      { "tier": 2, "text": "Profile with the platform tools, find main-thread work and leaks, fix the top offenders, and compare before and after." },
+      { "tier": 3, "text": "Do that, set performance budgets with automated regression checks in CI, and track them with production metrics." }
+    ]
+  },
+  {
+    "roles": ["mobile-android", "mobile-ios"], "skill": "Mobile app security best practices",
+    "situation": "A release build is found logging auth tokens and the API base URL in plain text.",
+    "options": [
+      { "tier": 0, "text": "Ignore it. Users can't see the logs." },
+      { "tier": 1, "text": "Remove the token logging in the next release." },
+      { "tier": 2, "text": "Strip sensitive logging from release builds, keep tokens in the keystore or keychain, and rotate any exposed tokens." },
+      { "tier": 3, "text": "Do that, add a CI lint for sensitive logging, enable obfuscation or pinning where justified, and review other local data stores." }
+    ]
+  },
+  {
+    "roles": ["mobile-android", "mobile-ios"], "skill": "Systems Fundamentals",
+    "situation": "The order screen fails when the network drops mid-request, and some users end up with duplicate orders.",
+    "options": [
+      { "tier": 0, "text": "Show a generic error and let users tap retry." },
+      { "tier": 1, "text": "Retry automatically on every failure." },
+      { "tier": 2, "text": "Use idempotency keys, retry with backoff, and show clear offline and error states." },
+      { "tier": 3, "text": "Do that, design the queue and sync behaviour with the backend team, and test flaky-network cases systematically." }
+    ]
+  },
+  {
+    "roles": ["mobile-android", "mobile-ios"], "skill": "Production Monitoring Fundamentals",
+    "situation": "Crash-free sessions dropped from 99.6% to 98.1% after the latest release.",
+    "options": [
+      { "tier": 0, "text": "Wait for more user reports before doing anything." },
+      { "tier": 1, "text": "Look at the top crash in the dashboard and guess at a fix." },
+      { "tier": 2, "text": "Group crashes by version, device and OS, find the main cause from the stack traces, and ship a fix or halt the rollout." },
+      { "tier": 3, "text": "Halt the staged rollout, fix the cause, add the case to tests, and tune alerting so it is caught at 1% rollout next time." }
+    ]
+  },
+  {
+    "roles": ["mobile-android", "mobile-ios"], "skill": "Build and Deployment Fundamentals",
+    "situation": "The release build fails on CI but works locally, one day before a store submission.",
+    "options": [
+      { "tier": 0, "text": "Submit the binary you built locally." },
+      { "tier": 1, "text": "Re-run CI and hope it passes." },
+      { "tier": 2, "text": "Compare the two environments and logs, find the difference in signing, config or dependency version, and fix CI." },
+      { "tier": 3, "text": "Fix it, pin the toolchain versions, and automate signing and store release so it can't recur." }
+    ]
+  },
+
+  {
+    "roles": ["qa"], "skill": "Functional Testing",
+    "situation": "You receive a PRD for a new wallet top-up flow two days before release. Some edge cases are not specified.",
+    "options": [
+      { "tier": 0, "text": "Test only the happy path described in the PRD." },
+      { "tier": 1, "text": "Run the standard test cases and report pass or fail." },
+      { "tier": 2, "text": "Derive cases from the PRD including edge cases, ask the PM about the unspecified behaviour, and test those too." },
+      { "tier": 3, "text": "Do that, risk-rank the scenarios, assess regression impact, and agree with the team what ships and what is deferred." }
+    ]
+  },
+  {
+    "roles": ["qa"], "skill": "API Testing",
+    "situation": "A new API returns 200 with an empty body when the user is not authorised.",
+    "options": [
+      { "tier": 0, "text": "Mark it as passed because the status is 200." },
+      { "tier": 1, "text": "Raise a bug saying the response is empty." },
+      { "tier": 2, "text": "Raise a bug explaining the auth contract is violated (expect 401 or 403), with the request, response and repro in Postman." },
+      { "tier": 3, "text": "Do that, add negative auth cases to the automated suite, and check other endpoints for the same pattern." }
+    ]
+  },
+  {
+    "roles": ["qa"], "skill": "Raising Tickets",
+    "situation": "You find a bug that happens about one time in ten on checkout.",
+    "options": [
+      { "tier": 0, "text": "Mention it informally. It's hard to reproduce." },
+      { "tier": 1, "text": "Raise a ticket saying checkout sometimes fails." },
+      { "tier": 2, "text": "Raise a ticket with steps, data, environment, frequency, logs and a screen recording." },
+      { "tier": 3, "text": "Do that, narrow down the trigger conditions, link related defects, and flag severity and release impact to the owner." }
+    ]
+  },
+  {
+    "roles": ["qa"], "skill": "Test Planning",
+    "situation": "A release has 120 test cases, a 2-day window and a team of two.",
+    "options": [
+      { "tier": 0, "text": "Run what you can and skip the rest." },
+      { "tier": 1, "text": "Split the cases equally and run them in order." },
+      { "tier": 2, "text": "Prioritise by risk and recent change, automate the repeatable checks, and agree what is out of scope." },
+      { "tier": 3, "text": "Do that, use defect history to refine priorities, and set a roadmap to move high-value regression into automation." }
+    ]
+  },
+  {
+    "roles": ["qa"], "skill": "Build and Deployments",
+    "situation": "A production deployment completes and the pipeline status is green.",
+    "options": [
+      { "tier": 0, "text": "Close the ticket." },
+      { "tier": 1, "text": "Check that the app opens." },
+      { "tier": 2, "text": "Run deployment verification: key flows, health endpoints and error rates." },
+      { "tier": 3, "text": "Do that, and turn the verification into an automated pipeline gate with rollback criteria." }
+    ]
+  },
+  {
+    "roles": ["qa"], "skill": "Communication",
+    "situation": "A developer disputes your bug and says it is expected behaviour.",
+    "options": [
+      { "tier": 0, "text": "Reopen the ticket repeatedly until it is fixed." },
+      { "tier": 1, "text": "Escalate it to your manager." },
+      { "tier": 2, "text": "Share your evidence and the spec reference, and talk it through together to agree on expected behaviour." },
+      { "tier": 3, "text": "Do that, and get the PRD clarified so the ambiguity doesn't come back on future work." }
+    ]
+  },
+
+  {
+    "roles": ["tech-support"], "skill": "Debugging Skills",
+    "situation": "A customer reports their ride booking is stuck, but the support dashboards show no error.",
+    "options": [
+      { "tier": 0, "text": "Ask the customer to try again later." },
+      { "tier": 1, "text": "Escalate to engineering with the ticket as it is." },
+      { "tier": 2, "text": "Pull the logs for the booking ID, follow the flow across services, and find where it stalled." },
+      { "tier": 3, "text": "Do that, identify the root cause, document the steps in the runbook, and propose an alert for it." }
+    ]
+  },
+  {
+    "roles": ["tech-support"], "skill": "Rest API",
+    "situation": "You need to check whether an internal API returns the right fields for a user.",
+    "options": [
+      { "tier": 0, "text": "Ask a developer to check for you." },
+      { "tier": 1, "text": "Use a saved Postman request someone else made." },
+      { "tier": 2, "text": "Call it from Postman or curl with the right method, headers and auth, and validate the response." },
+      { "tier": 3, "text": "Do that, and turn it into a reusable collection with environments for the rest of the team." }
+    ]
+  },
+  {
+    "roles": ["tech-support"], "skill": "Communication",
+    "situation": "A customer escalates angrily about a delayed refund. The delay is on the bank's side.",
+    "options": [
+      { "tier": 0, "text": "Tell them it isn't your fault." },
+      { "tier": 1, "text": "Say you will look into it." },
+      { "tier": 2, "text": "Acknowledge the problem, explain the status and timeline clearly, and follow up when it is closed." },
+      { "tier": 3, "text": "Do that, record the root cause, and flag the pattern so proactive messaging can be added." }
+    ]
+  },
+  {
+    "roles": ["tech-support"], "skill": "Database",
+    "situation": "You need the number of failed payments per day over the last week.",
+    "options": [
+      { "tier": 0, "text": "Ask engineering for the number." },
+      { "tier": 1, "text": "Select all rows and count them by hand." },
+      { "tier": 2, "text": "Write a grouped SQL query with a date filter on the right table." },
+      { "tier": 3, "text": "Do that, check index use and limits so it is safe on production, and save it as a reusable report." }
+    ]
+  },
+
+  {
+    "roles": ["data-engineer"], "skill": "Data Quality",
+    "situation": "A daily revenue dashboard shows a 30% drop, but operations says trip volume is normal.",
+    "options": [
+      { "tier": 0, "text": "Tell stakeholders the data is what it is." },
+      { "tier": 1, "text": "Re-run the pipeline." },
+      { "tier": 2, "text": "Trace the lineage to find the break (a missing partition, schema change or dropped duplicates), fix it and backfill." },
+      { "tier": 3, "text": "Do that, then add automated freshness, volume and schema checks so it is caught before the dashboard." }
+    ]
+  },
+  {
+    "roles": ["data-engineer"], "skill": "Data Pipelines",
+    "situation": "A nightly pipeline fails halfway through a load. It is re-run, and now the target has duplicates.",
+    "options": [
+      { "tier": 0, "text": "Delete the duplicate rows by hand each time." },
+      { "tier": 1, "text": "Add a clean-up step after the load." },
+      { "tier": 2, "text": "Make the load idempotent with a merge or partition overwrite, and add retries." },
+      { "tier": 3, "text": "Do that, add orchestration alerts and backfill tooling, and agree SLAs with the consumers." }
+    ]
+  },
+  {
+    "roles": ["data-engineer"], "skill": "Data Modeling - Syntactic and semantic",
+    "situation": "Analysts need to slice trips by city, vehicle type and time, and the source systems change often.",
+    "options": [
+      { "tier": 0, "text": "Give them the raw tables." },
+      { "tier": 1, "text": "Build one wide table with everything in it." },
+      { "tier": 2, "text": "Model facts and dimensions around the business process, with keys and documented definitions." },
+      { "tier": 3, "text": "Do that, handle slowly changing dimensions and versioned definitions, and align the model with the data architecture." }
+    ]
+  },
+  {
+    "roles": ["data-engineer"], "skill": "Production and path to prod",
+    "situation": "You have built a new pipeline and want to release it.",
+    "options": [
+      { "tier": 0, "text": "Run it manually in production." },
+      { "tier": 1, "text": "Test it locally and deploy it by hand." },
+      { "tier": 2, "text": "Ship it through CI/CD with tests, staging validation and a rollback plan." },
+      { "tier": 3, "text": "Do that, with infrastructure as code, monitoring and cost controls built in." }
+    ]
+  },
+
+  {
+    "roles": ["em"], "skill": "Planning & Estimation",
+    "situation": "Product wants to commit 5 large items this quarter. Your team's capacity covers about 3.",
+    "options": [
+      { "tier": 0, "text": "Agree to all five and hope the team stretches." },
+      { "tier": 1, "text": "Tell product the team can't do it." },
+      { "tier": 2, "text": "Use capacity data to show the trade-off, rank by business impact, and agree what is committed and what is stretch." },
+      { "tier": 3, "text": "Do that, surface cross-team dependencies early, and revisit the plan monthly with your leads." }
+    ]
+  },
+  {
+    "roles": ["em"], "skill": "Execution & Predictability",
+    "situation": "Sprint spillover has been above 30% for three sprints in a row.",
+    "options": [
+      { "tier": 0, "text": "Ask the team to work harder." },
+      { "tier": 1, "text": "Remind the team about estimates in the retro." },
+      { "tier": 2, "text": "Analyse the causes (scope churn, estimates, blockers), agree specific changes in planning, and track the trend." },
+      { "tier": 3, "text": "Do that, and resolve cross-team dependency causes together with the other managers." }
+    ]
+  },
+  {
+    "roles": ["em"], "skill": "Quality & Operational Excellence",
+    "situation": "A major incident last week was caused by a missing alert, and a similar one happened last quarter.",
+    "options": [
+      { "tier": 0, "text": "Close the incident." },
+      { "tier": 1, "text": "Add the missing alert." },
+      { "tier": 2, "text": "Run a blameless RCA, track the action items to closure, and review whether it recurs." },
+      { "tier": 3, "text": "Do that, look for the pattern across incidents, and set reliability standards for the wider org." }
+    ]
+  },
+  {
+    "roles": ["em"], "skill": "Technical Decision Making",
+    "situation": "Two senior engineers disagree about build versus buy for a notification service.",
+    "options": [
+      { "tier": 0, "text": "Back whoever argues best in the meeting." },
+      { "tier": 1, "text": "Let them settle it between themselves and stay out of it." },
+      { "tier": 2, "text": "Frame the criteria (cost, time, risk, maintainability), review the options, and decide with the reasoning documented." },
+      { "tier": 3, "text": "Do that, involve the key stakeholders, and set checkpoints so the decision can be reversed if needed." }
+    ]
+  },
+  {
+    "roles": ["em"], "skill": "Performance Management",
+    "situation": "A strong engineer's output has dropped over the past two months.",
+    "options": [
+      { "tier": 0, "text": "Wait for the performance review cycle." },
+      { "tier": 1, "text": "Ask in stand-up whether everything is fine." },
+      { "tier": 2, "text": "Hold a 1:1 to understand what is going on, give specific feedback, and agree actions." },
+      { "tier": 3, "text": "Do that, check workload and team factors that may be contributing, and follow up regularly with a development plan." }
+    ]
+  },
+  {
+    "roles": ["em"], "skill": "Team Health & Engagement",
+    "situation": "Your engagement score fell sharply and two engineers hint they are interviewing elsewhere.",
+    "options": [
+      { "tier": 0, "text": "Ignore it. Some attrition is normal." },
+      { "tier": 1, "text": "Announce to the team that you are open to feedback." },
+      { "tier": 2, "text": "Talk to each person, learn what is driving it (workload, growth), and commit to visible actions." },
+      { "tier": 3, "text": "Do that, take systemic causes to leadership, and track engagement over time." }
+    ]
+  }
+]
