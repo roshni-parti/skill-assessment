@@ -5,7 +5,16 @@ import path from 'node:path';
 import { getRole } from './matrix.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAP = JSON.parse(readFileSync(process.env.LEVEL_MAP_PATH ?? path.join(ROOT, 'data', 'level-map.json'), 'utf8'));
+const MAP_PATH = process.env.LEVEL_MAP_PATH ?? path.join(ROOT, 'data', 'level-map.json');
+let mapCache;
+/** Read on first use (not at import) so a missing file is reported clearly instead of crashing the whole server. */
+export function levelMap() {
+  if (!mapCache) {
+    try { mapCache = JSON.parse(readFileSync(MAP_PATH, 'utf8')); }
+    catch (e) { throw new Error(`Could not read data/level-map.json (${e.code ?? e.message})`); }
+  }
+  return mapCache;
+}
 
 export const normEmail = (e) => String(e ?? '').trim().toLowerCase();
 
@@ -31,13 +40,13 @@ export async function upsertEmployees(db, list) {
  */
 export function resolveTarget(emp) {
   if (!emp) return { status: 'no-matrix', message: 'No employee record found.' };
-  const unsupported = MAP.unsupportedDepartments[emp.department];
+  const unsupported = levelMap().unsupportedDepartments[emp.department];
   if (unsupported) return { status: 'unsupported-team', message: unsupported };
-  const roleId = MAP.supportedParentDepartments.includes(emp.parent_department) ? MAP.roleByDepartment[emp.department] : null;
+  const roleId = levelMap().supportedParentDepartments.includes(emp.parent_department) ? levelMap().roleByDepartment[emp.department] : null;
   if (!roleId) return { status: 'no-matrix', message: `The skill matrix for ${emp.parent_department || 'your function'}${emp.department && emp.department !== emp.parent_department ? ' (' + emp.department + ')' : ''} isn't ready yet. You'll be able to take the assessment once it is released.` };
-  const band = emp.band || MAP.bandByDesignation[emp.designation] || '';
+  const band = emp.band || levelMap().bandByDesignation[emp.designation] || '';
   const role = getRole(roleId);
-  const currentLevel = MAP.levelByBand[roleId]?.[band];
+  const currentLevel = levelMap().levelByBand[roleId]?.[band];
   if (!currentLevel || !role.levels.some((l) => l.name === currentLevel)) {
     return { status: 'no-level', roleId, roleName: role.name, message: `We couldn't work out your level (band "${emp.band || 'blank'}", title "${emp.designation || emp.functional_title || 'unknown'}"). Please ask HR to update your band in the employee master.` };
   }
@@ -49,7 +58,7 @@ export function resolveTarget(emp) {
 
 /** Employees an admin can take the test as: everyone with a 'ready' target. */
 export async function listAssessable(db) {
-  const rows = await db.query("SELECT * FROM employees WHERE parent_department = ANY($1) ORDER BY name", [MAP.supportedParentDepartments]);
+  const rows = await db.query("SELECT * FROM employees WHERE parent_department = ANY($1) ORDER BY name", [levelMap().supportedParentDepartments]);
   return rows.map((e) => ({ e, t: resolveTarget(e) })).filter(({ t }) => t.status === 'ready')
     .map(({ e, t }) => ({ id: e.id, name: e.name, email: e.email, roleName: t.roleName, currentLevel: t.currentLevel, targetLevel: t.targetLevel, managerName: e.manager_name }));
 }

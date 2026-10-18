@@ -2,7 +2,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "client/dist",
   "functions": {
-    "api/index.js": { "includeFiles": "data/{matrix,scenarios,level-map}.json", "maxDuration": 30 }
+    "api/index.js": {
+      "includeFiles": "data/*.json",
+      "excludeFiles": "node_modules/@electric-sql/**",
+      "maxDuration": 30
+    }
   },
   "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }]
 }

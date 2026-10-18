@@ -5,8 +5,13 @@ async function call(method, path, body) {
     headers: { 'content-type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error ?? `Request failed (${res.status})`), { status: res.status });
+  const text = await res.text();
+  let data = {};
+  try { data = JSON.parse(text); } catch { /* not JSON: a platform error page, not our API */ }
+  if (!res.ok) {
+    const detail = text && !text.trim().startsWith('<') ? `: ${text.replace(/\s+/g, ' ').trim().slice(0, 160)}` : '';
+    throw Object.assign(new Error(data.error ?? `The server returned an error (${res.status})${detail}. Open /api/health, or the Vercel logs, for details.`), { status: res.status });
+  }
   return data;
 }
 

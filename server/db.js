@@ -57,6 +57,7 @@ export async function openDb({ url = process.env.DATABASE_URL, memory = false, f
   if (url) {
     const { default: pg } = await import('pg');
     const pool = new pg.Pool({ connectionString: url, max: 3 });
+    pool.on('error', (e) => console.error('database pool error:', e.message)); // an idle connection dropped by the host must not crash the function
     run = (sql, params) => pool.query(sql, params);
     exec = (sql) => pool.query(sql);
   } else {

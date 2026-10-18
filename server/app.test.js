@@ -302,3 +302,14 @@ test('OTP login: too many wrong codes locks the account, and an admin can sign i
   } finally { server.closeAllConnections(); server.close(); }
   assert.throws(() => createApp(db, { fixedOtps: { 'roshni.parti@rapido.bike': 'abc' } }), /6 digits/);
 });
+
+// ---------- health ----------
+test('/api/health reports what is loaded, with no secrets and no login', async () => {
+  const h = await harness();
+  try {
+    const r = await h.client().call('GET', '/api/health');
+    assert.equal(r.status, 200);
+    assert.deepEqual([r.body.ok, r.body.database, r.body.levelMap, r.body.roles, r.body.employees], [true, true, true, 7, PEOPLE.length]);
+    assert.equal(JSON.stringify(r.body).includes('secret'), false);
+  } finally { h.close(); }
+});

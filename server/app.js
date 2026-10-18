@@ -4,7 +4,7 @@ import { getRole, listRoles } from './matrix.js';
 import { buildQuestions, computeResult, publicQuestion } from './scoring.js';
 import { recommend } from './recommend.js';
 import { clearCookie, googleVerifier, parseCookies, readSession, sessionCookie, signSession } from './auth.js';
-import { getEmployeeByEmail, getEmployeeById, listAssessable, normEmail, resolveTarget } from './directory.js';
+import { getEmployeeByEmail, getEmployeeById, levelMap, listAssessable, normEmail, resolveTarget } from './directory.js';
 
 const httpError = (status, message) => Object.assign(new Error(message), { status });
 
@@ -124,6 +124,16 @@ export function createApp(db, opts = {}) {
     const evidence = Object.fromEntries(Object.entries(self).filter(([, r]) => r.evidence).map(([k, r]) => [k, r.evidence]));
     return { ...result, quick: !!a.quick, evidence, recommendations: recommend(role, questions, result, a.target_level) };
   }
+
+  // ---------- health: what is working, with no secrets (open this URL first when something is wrong) ----------
+  app.get('/api/health', async (_req, res) => {
+    const msg = (e) => String(e.message).replace(/postgres(ql)?:\/\/\S+/g, '[database url]').slice(0, 160);
+    const out = { ok: true, database: true, employees: null, roles: 0, levelMap: true, sessionSecret: !!cfg.secret, googleSignIn: !!cfg.googleClientId };
+    try { out.employees = (await db.one('SELECT count(*)::int AS n FROM employees')).n; } catch (e) { out.ok = out.database = false; out.databaseError = msg(e); }
+    try { out.roles = listRoles().length; } catch (e) { out.ok = false; out.matrixError = msg(e); }
+    try { levelMap(); } catch (e) { out.ok = out.levelMap = false; out.levelMapError = msg(e); }
+    res.status(out.ok ? 200 : 503).json(out);
+  });
 
   // ---------- auth ----------
   app.get('/api/config', (_req, res) => res.json({ googleClientId: cfg.googleClientId, devLogin: cfg.devLogin, otpLogin: true, allowedDomain: cfg.allowedDomain }));

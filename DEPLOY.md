@@ -53,6 +53,16 @@ Do this from your own computer. The master file never goes to GitHub or Vercel.
 - **Manager:** the *Direct Manager*. Only that person can review (once real employee sign-in is on).
 - **Not covered yet:** Devops, people at the top of their track, consultants with no band, and every function outside Engineering.
 
+## Troubleshooting
+1. **Use the production address.** On the project's **Overview** page, click the domain under *Domains* (like `skill-assessment-<team>.vercel.app`). Addresses with a random string in them are single deployments, and Vercel may ask you to log in to see them (Settings → Deployment Protection → Vercel Authentication).
+2. **Open `<your address>/api/health`.** It shows what is working, with no secrets:
+   - `{"ok":true,"database":true,"employees":N,"roles":7,"levelMap":true}`: all fine.
+   - `"database":false` plus `databaseError`: the Neon database isn't connected to the **Production** environment, or the connection failed. Storage → your database → connect to the project, then Redeploy.
+   - `{"error":"Server failed to start: …"}`: the message names the missing setting or file (for example `DATABASE_URL`).
+   - `"employees":0`: the database is empty. Do Step 6 (the sign-in for Roshni works without it).
+3. **Vercel's logs.** Project → **Logs**, filter to *Errors*. The first red line after you reload the page is the real cause. Paste it to whoever is helping you.
+4. After changing an environment variable you must **Redeploy**; it doesn't apply to the running version.
+
 ## Later: let everyone sign in
 - **Email codes:** needs an email sender (for example Resend or Amazon SES) and a table of one-time codes. The login screen and the `/api/auth/otp/request` + `/verify` endpoints are already the right shape.
 - **Google sign-in:** create the OAuth client (see git history of this file), set `GOOGLE_CLIENT_ID` and redeploy.
